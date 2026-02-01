@@ -1,0 +1,5 @@
+{
+    "name": "HVAC After Dark",
+    "description": "The ultimate chill spot for HVAC technicians to share memes, crazy field finds, and chat shop in a sleek neon environment.",
+    "requestFramePermissions": ["camera", "microphone"]
+}
