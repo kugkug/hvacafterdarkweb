@@ -1,4 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-export const Input = ({ id, label, type, isRequired = false, value, onChange, isEmpty = false }) => {
-    return (_jsxs("div", { className: 'space-y-2', children: [_jsx("label", { htmlFor: id, className: 'block text-[9px] font-space font-bold text-cyan-500/60 uppercase tracking-[0.3em]', children: label }), _jsx("input", { id: id, type: type, value: value, required: isRequired, onChange: onChange, className: 'w-full bg-slate-950 border border-white/5 rounded-xl px-6 py-4 text-sm focus:border-cyan-500/40 focus:outline-none transition-all duration-500 font-light' }), isEmpty && (_jsxs("p", { className: 'transition-all duration-100 text-[13px] text-red-600', id: `${id}-error`, children: ["Please enter a valid ", label.toLowerCase(), "."] }))] }));
-};

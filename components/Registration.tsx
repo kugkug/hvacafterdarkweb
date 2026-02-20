@@ -5,6 +5,7 @@ import { Input } from './Input';
 import { ADMIN_EMAIL } from '../constants';
 import { SimpleButton } from './SimpleButton';
 import usePost from '../custom_hooks/usePost';
+import { useAuth } from '../utilities/auth';
 
 interface Props {
     onClose?: () => void;
@@ -16,6 +17,7 @@ const Registration = ({ onClose, onCancel }: Props) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [password_confirmation, setConfirmPassword] = useState('');
+    const auth = useAuth();
 
     const { postData, loading, error, response } = usePost('/user/create');
 
@@ -38,12 +40,7 @@ const Registration = ({ onClose, onCancel }: Props) => {
             password_confirmation: !password_confirmation
         });
 
-        if (
-            isEmpty.name ||
-            isEmpty.email ||
-            isEmpty.password ||
-            isEmpty.password_confirmation
-        ) {
+        if (!name || !email || !password || !password_confirmation) {
             return;
         }
 
@@ -54,7 +51,20 @@ const Registration = ({ onClose, onCancel }: Props) => {
             password_confirmation
         };
 
-        await postData(registrationData);
+        const registrationResponse = await postData(registrationData);
+
+        if (registrationResponse?.status && registrationResponse?.token) {
+            auth.login(
+                email,
+                registrationResponse.token,
+                registrationResponse.name
+            );
+            setName('');
+            setEmail('');
+            setPassword('');
+            setConfirmPassword('');
+            onClose?.();
+        }
     };
 
     return (

@@ -4,12 +4,16 @@ import { ModLogEntry, Post, User } from '../types';
 import { ChatWindow } from './ChatWindow';
 import { PrivateMessages } from './PrivateMessages';
 import { ModLog } from './ModLog';
-import { ADMIN_EMAIL, MOCK_FINDS, MOCK_MOD_LOGS } from '../constants';
+import {
+    ADMIN_EMAIL,
+    MOCK_FINDS,
+    MOCK_MOD_LOGS,
+    MOCK_USER
+} from '../constants';
 import { Footer } from './Footer';
 import { useAuth } from '../utilities/auth';
 
 interface Props {
-    currentUser: User | null;
     view: string;
     setView: (
         view: SetStateAction<
@@ -33,7 +37,6 @@ interface Props {
 }
 
 const Main = ({
-    currentUser,
     view,
     setView,
     setShowAuth,
@@ -42,11 +45,18 @@ const Main = ({
     handleUpload
 }: Props) => {
     const auth = useAuth();
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [modLogs, setModLogs] = useState<ModLogEntry[]>(MOCK_MOD_LOGS);
     const [uploading, setUploading] = useState(false);
     const [finds, setFinds] = useState<Post[]>(
         MOCK_FINDS.map((f) => ({ ...f, isApproved: true }))
     );
+
+    const handleLogin = () => {
+        setCurrentUser(MOCK_USER);
+        setShowAuth(false);
+    };
+
     const addModLog = (
         action: ModLogEntry['action'],
         targetId: string,
@@ -130,7 +140,7 @@ const Main = ({
                         <div className='flex flex-col sm:flex-row justify-center gap-6 pt-8'>
                             <NeonButton
                                 onClick={() =>
-                                    currentUser
+                                    auth.user
                                         ? setView('CHAT')
                                         : setShowAuth(true)
                                 }
@@ -162,7 +172,7 @@ const Main = ({
                                 </div>
                                 <button
                                     onClick={() =>
-                                        currentUser
+                                        auth.user
                                             ? setView('MEMES')
                                             : setShowAuth(true)
                                     }
@@ -182,7 +192,7 @@ const Main = ({
                                             alt={m.caption}
                                             className='w-full h-full object-cover group-hover:scale-105 transition-all duration-1000 opacity-40 group-hover:opacity-100'
                                         />
-                                        {!currentUser && (
+                                        {!auth.user && (
                                             <div className='absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4'>
                                                 <span className='text-[8px] font-space font-bold text-slate-600 tracking-[0.4em] uppercase'>
                                                     ENCRYPTED
@@ -206,7 +216,7 @@ const Main = ({
                                 </div>
                                 <button
                                     onClick={() =>
-                                        currentUser
+                                        auth.user
                                             ? setView('FINDS')
                                             : setShowAuth(true)
                                     }
@@ -226,7 +236,7 @@ const Main = ({
                                             alt={f.caption}
                                             className='w-full h-full object-cover group-hover:scale-105 transition-all duration-1000 opacity-40 group-hover:opacity-100'
                                         />
-                                        {!currentUser && (
+                                        {!auth.user && (
                                             <div className='absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4'>
                                                 <span className='text-[8px] font-space font-bold text-slate-600 tracking-[0.4em] uppercase'>
                                                     LOCKED
@@ -238,19 +248,18 @@ const Main = ({
                             </div>
                         </section>
                     </div>
-                    <Footer />
                 </div>
             )}
 
-            {view === 'CHAT' && currentUser && (
-                <ChatWindow user={currentUser} onModAction={addModLog} />
-            )}
-            {view === 'MESSAGES' && currentUser && (
-                <PrivateMessages currentUser={currentUser} />
-            )}
-            {view === 'MOD_LOGS' && currentUser && <ModLog logs={modLogs} />}
+            {/* {view === 'CHAT' && auth.user && (
+                <ChatWindow user={auth.user} onModAction={addModLog} />
+            )} */}
+            {/* {view === 'MESSAGES' && auth.user && (
+                <PrivateMessages currentUser={auth.user} />
+            )} */}
+            {view === 'MOD_LOGS' && auth.user && <ModLog logs={modLogs} />}
 
-            {(view === 'MEMES' || view === 'FINDS') && currentUser && (
+            {(view === 'MEMES' || view === 'FINDS') && auth.user && (
                 <div className='space-y-12 animate-in fade-in duration-700'>
                     <div className='flex justify-between items-center border-b border-white/5 pb-8'>
                         <div className='space-y-1'>
@@ -287,7 +296,7 @@ const Main = ({
                             />
                         </label>
                     </div>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10'>
+                    {/* <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10'>
                         {(view === 'MEMES' ? memes : finds)
                             .filter(
                                 (p) =>
@@ -322,11 +331,11 @@ const Main = ({
                                     </div>
                                 </div>
                             ))}
-                    </div>
+                    </div> */}
                 </div>
             )}
 
-            {view === 'MOD' &&
+            {/* {view === 'MOD' &&
                 currentUser &&
                 (currentUser.role === 'ADMIN' ||
                     currentUser.role === 'MODERATOR') && (
@@ -456,9 +465,9 @@ const Main = ({
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
 
-            {view === 'PROFILE' && currentUser && (
+            {/* {view === 'PROFILE' && currentUser && (
                 <div className='max-w-xl mx-auto py-12 animate-in zoom-in-95 duration-700'>
                     <div className='glass-panel p-10 rounded-[2.5rem] border-white/5 relative overflow-hidden'>
                         <div className='flex flex-col items-center space-y-8'>
@@ -567,7 +576,7 @@ const Main = ({
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </main>
     );
 };

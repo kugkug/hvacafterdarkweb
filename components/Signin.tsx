@@ -30,12 +30,12 @@ const Sigin = ({ onClose, onClick }: Props) => {
     const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
-        // setIsEmpty({
-        //     email: !email,
-        //     password: !password
-        // });
+        setIsEmpty({
+            email: !email,
+            password: !password
+        });
 
-        if (isEmpty.email || isEmpty.password) {
+        if (!email || !password) {
             return;
         }
 
@@ -44,11 +44,11 @@ const Sigin = ({ onClose, onClick }: Props) => {
             password
         });
 
-        if (postResponse?.status) {
-            console.log(postResponse);
-            auth.login(email, postResponse.token);
+        if (postResponse?.status && postResponse?.token && postResponse?.name) {
+            auth.login(email, postResponse.token, postResponse.name);
+            setEmail('');
+            setPassword('');
             onClose();
-            // navigate('/');
         }
     };
 

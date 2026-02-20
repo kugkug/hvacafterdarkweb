@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { User, Post, Role, PrivateMessage, ModLogEntry } from '../types';
 import Main from './Main';
-import { NeonButton } from './NeonButton';
-import { ChatWindow } from './ChatWindow';
-import { PrivateMessages } from './PrivateMessages';
-import { ModLog } from './ModLog';
 import { checkContentSafety } from '../services/geminiService';
 import Registration from './Registration';
 import Signin from './Signin';
+import { useAuth } from '../utilities/auth';
 
 import {
     MOCK_USER,
@@ -54,7 +50,9 @@ const getSeniorityRank = (count: number) => {
 };
 
 const Home = () => {
+    const auth = useAuth();
     const [currentUser, setCurrentUser] = useState<User | null>(null);
+
     const [showAuth, setShowAuth] = useState(false);
     const [showRegister, setShowRegister] = useState(false);
     const [view, setView] = useState<
@@ -77,11 +75,12 @@ const Home = () => {
     const [pms] = useState<PrivateMessage[]>(MOCK_PMS);
     const [modLogs, setModLogs] = useState<ModLogEntry[]>(MOCK_MOD_LOGS);
 
-    const handleLogin = () => {
-        setCurrentUser(MOCK_USER);
-        setShowAuth(false);
-        setShowRegister(false);
-    };
+    // const handleLogin = () => {
+    //     setCurrentUser(MOCK_USER);
+    //     setShowAuth(false);
+    //     setShowRegister(false);
+    // };
+
     const handleLogout = () => {
         setCurrentUser(null);
         setView('HOME');
@@ -167,7 +166,6 @@ const Home = () => {
             </div>
 
             <Main
-                currentUser={currentUser}
                 view={view}
                 setView={setView}
                 setShowAuth={setShowAuth}
