@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import useFetch from '../custom_hooks/useFetch';
 import ConversationWindow from './ConversationWindow';
+import InviteUserModal from './InviteUserModal';
 import usePost from '../custom_hooks/usePost';
 import { useAuth } from '../utilities/auth';
 
 const Community = () => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
     const [chat, setChat] = useState([]);
     const [showConversationWindow, setShowConversationWindow] = useState(false);
+    const [showInviteModal, setShowInviteModal] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const [conversationName, setConversationName] = useState<string | null>(
         null
@@ -49,6 +52,25 @@ const Community = () => {
         if (postResponse?.status === true) {
             setNewMessage('');
             await refetchConversation();
+        }
+    };
+
+    const handlePurgeMessage = async (msg: { id: string | number }) => {
+        if (!activeRoomId || !token) return;
+        const apiUrl =
+            import.meta.env.VITE_API_URL +
+            `/conversations/${activeRoomId}/messages/${msg.id}`;
+        try {
+            await axios.delete(apiUrl, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            await refetchConversation();
+        } catch (err) {
+            console.error('Failed to delete message', err);
         }
     };
 
@@ -119,7 +141,14 @@ const Community = () => {
                                 {conversationDescription}
                             </p>
                         </div>
-                        <div className='flex items-center space-x-4'></div>
+                        <div className='flex items-center space-x-4'>
+                            <button
+                                onClick={() => setShowInviteModal(true)}
+                                className='py-2.5 px-4 bg-slate-900/40 border border-white/5 rounded-xl text-[9px] font-space font-bold text-slate-400 hover:text-cyan-400 hover:border-cyan-500/20 transition-all uppercase tracking-[0.2em]'
+                            >
+                                + Invite User
+                            </button>
+                        </div>
                     </div>
 
                     <div
@@ -171,16 +200,16 @@ const Community = () => {
 
                                     {!msg.isDeleted && (
                                         <div className='flex items-center mt-2 space-x-4 opacity-0 group-hover:opacity-100 transition-all'>
-                                            <button
-                                                // onClick={() => setReplyTo(msg)}
+                                            {/* <button
+                                                onClick={() => setReplyTo(msg)}
                                                 className='text-[9px] text-slate-600 hover:text-cyan-400 uppercase font-space tracking-widest font-bold'
                                             >
                                                 REPLY
-                                            </button>
-                                            <button
-                                                // onClick={() =>
-                                                //     handleThumbUp(msg.id)
-                                                // }
+                                            </button> */}
+                                            {/* <button
+                                                onClick={() =>
+                                                    handleThumbUp(msg.id)
+                                                }
                                                 className={`text-[9px] uppercase font-space tracking-widest flex items-center space-x-1`}
                                             >
                                                 <span className='font-bold'>
@@ -188,19 +217,14 @@ const Community = () => {
                                                 </span>
                                                 <span className='text-emerald-500 font-bold opacity-80'>
                                                     👍{' '}
-                                                    {/* {msg.thumbsUps.length || ''} */}
+                                                    {msg.thumbsUps.length || ''}
                                                 </span>
-                                            </button>
+                                            </button> */}
                                             {/* {canModify(msg) && ( */}
                                             <button
-                                                // onClick={() => {
-                                                //     setInputText(
-                                                //         msg.content
-                                                //     );
-                                                //     setEditingMessageId(
-                                                //         msg.id
-                                                //     );
-                                                // }}
+                                                onClick={() => {
+                                                    setNewMessage(msg.body);
+                                                }}
                                                 className='text-[9px] text-amber-500/60 hover:text-amber-500 uppercase font-space tracking-widest font-bold'
                                             >
                                                 EDIT
@@ -208,14 +232,17 @@ const Community = () => {
                                             {/* )} */}
                                             {/* {(user.role === 'ADMIN' ||
                                                 user.role === 'MODERATOR') && ( */}
-                                            <button
-                                                // onClick={() =>
-                                                //     handlePurgeMessage(msg)
-                                                // }
-                                                className='text-[9px] text-red-500/60 hover:text-red-500 uppercase font-space tracking-widest font-bold'
-                                            >
-                                                PURGE
-                                            </button>
+
+                                            {msg.user.email === user && (
+                                                <button
+                                                    onClick={() =>
+                                                        handlePurgeMessage(msg)
+                                                    }
+                                                    className='text-[9px] text-red-500/60 hover:text-red-500 uppercase font-space tracking-widest font-bold'
+                                                >
+                                                    DELETE
+                                                </button>
+                                            )}
                                             {/* )} */}
                                         </div>
                                     )}
@@ -291,7 +318,13 @@ const Community = () => {
                             ))}
                     </div>
 
-                    <div className='p-6 border-t border-white/5 bg-slate-950/60'>
+                    <div className='p-6 border-t border-white/5 bg-slate-950/60 space-y-3'>
+                        {/* <button
+                            onClick={() => setShowInviteModal(true)}
+                            className='w-full py-4 bg-slate-900/40 border border-white/5 rounded-xl text-[9px] font-space font-bold text-slate-700 hover:text-cyan-500 transition-all uppercase tracking-[0.2em]'
+                        >
+                            + Invite User
+                        </button> */}
                         <button
                             onClick={() => setShowConversationWindow(true)}
                             className='w-full py-4 bg-slate-900/40 border border-white/5 rounded-xl text-[9px] font-space font-bold text-slate-700 hover:text-cyan-500 transition-all uppercase tracking-[0.2em]'
@@ -305,6 +338,13 @@ const Community = () => {
                 <ConversationWindow
                     onClose={() => setShowConversationWindow(false)}
                     refetchConversation={refetch}
+                />
+            )}
+            {showInviteModal && (
+                <InviteUserModal
+                    onClose={() => setShowInviteModal(false)}
+                    token={token}
+                    conversationId={activeRoomId}
                 />
             )}
         </main>
