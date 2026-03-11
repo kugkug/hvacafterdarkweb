@@ -67,12 +67,12 @@ const Memes = () => {
     }, [data]);
 
     return (
-        <div className='min-h-screen bg-[#020617] text-slate-200 selection:bg-cyan-500/40 relative'>
-            <main className='relative z-10 max-w-[1400px] mx-auto p-6 md:p-12'>
-                <div className='space-y-12 animate-in fade-in duration-700'>
-                    <div className='flex justify-between items-center border-b border-white/5 pb-8'>
-                        <div className='space-y-1'>
-                            <h2 className='text-3xl font-syne font-bold text-slate-100 tracking-tighter uppercase'>
+        <div className='min-h-screen bg-[#020617] text-slate-200 selection:bg-cyan-500/40 relative overflow-x-hidden'>
+            <main className='relative z-10 max-w-[1400px] mx-auto px-4 py-6 sm:p-6 md:p-12 min-w-0'>
+                <div className='space-y-8 sm:space-y-12 animate-in fade-in duration-700'>
+                    <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-white/5 pb-6 sm:pb-8'>
+                        <div className='space-y-1 min-w-0'>
+                            <h2 className='text-2xl sm:text-3xl font-syne font-bold text-slate-100 tracking-tighter uppercase'>
                                 The Meme Lab
                             </h2>
                             <p className='text-[9px] font-space text-slate-600 uppercase tracking-[0.4em] font-bold'>
@@ -80,7 +80,7 @@ const Memes = () => {
                             </p>
                         </div>
                         <label
-                            className={`cursor-pointer bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-space font-bold text-[10px] transition-all shadow-xl uppercase tracking-widest text-white`}
+                            className='cursor-pointer flex-shrink-0 w-full sm:w-auto text-center bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-space font-bold text-[10px] transition-all shadow-xl uppercase tracking-widest text-white'
                         >
                             {uploading ? 'UPLOADING...' : `UPLOAD MEME`}
                             <input

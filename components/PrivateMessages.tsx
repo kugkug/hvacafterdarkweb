@@ -65,16 +65,16 @@ export const PrivateMessages: React.FC = () => {
     // };
 
     return (
-        <main className='relative z-10 max-w-[1400px] mx-auto p-6 md:p-12'>
-            <div className='flex h-[80vh] glass-panel rounded-3xl border border-cyan-500/10 overflow-hidden bg-slate-950/40 animate-in fade-in duration-700'>
+        <main className='relative z-10 max-w-[1400px] mx-auto px-4 py-6 sm:p-6 md:p-12 min-w-0'>
+            <div className='flex flex-col sm:flex-row h-[75vh] sm:h-[80vh] glass-panel rounded-2xl sm:rounded-3xl border border-cyan-500/10 overflow-hidden bg-slate-950/40 animate-in fade-in duration-700'>
                 {/* Conversation List */}
-                <div className='w-80 border-r border-cyan-500/5 bg-slate-950/60 flex flex-col'>
-                    <div className='p-8 border-b border-cyan-500/5 bg-slate-950/40'>
-                        <h2 className='text-xl font-syne font-bold text-cyan-400 uppercase tracking-tighter'>
+                <div className='w-full sm:w-72 md:w-80 flex-shrink-0 flex flex-col border-b sm:border-b-0 sm:border-r border-cyan-500/5 bg-slate-950/60 min-h-0'>
+                    <div className='p-4 sm:p-6 md:p-8 border-b border-cyan-500/5 bg-slate-950/40'>
+                        <h2 className='text-lg sm:text-xl font-syne font-bold text-cyan-400 uppercase tracking-tighter'>
                             MESSAGES
                         </h2>
                     </div>
-                    <div className='flex-1 overflow-y-auto p-4 space-y-2.5 scrollbar-hide'>
+                    <div className='flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 scrollbar-hide min-h-0'>
                         {conversations.map((user) => {
                             const unreadCount = messages.filter(
                                 (m) =>

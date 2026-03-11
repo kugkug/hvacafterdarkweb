@@ -68,8 +68,8 @@ const Registration = ({ onClose, onCancel }: Props) => {
     };
 
     return (
-        <div className='fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/98 backdrop-blur-3xl animate-in fade-in duration-500'>
-            <div className='glass-panel w-full max-w-md p-12 rounded-[3rem] border-white/5 relative shadow-2xl overflow-hidden'>
+        <div className='fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-slate-950/98 backdrop-blur-3xl animate-in fade-in duration-500 overflow-y-auto'>
+            <div className='glass-panel w-full max-w-md p-6 sm:p-12 rounded-2xl sm:rounded-[3rem] border-white/5 relative shadow-2xl overflow-hidden my-auto max-h-[calc(100vh-2rem)] overflow-y-auto'>
                 <SimpleButton
                     onClose={onClose}
                     className='absolute top-8 right-8 text-slate-700 hover:text-white transition-colors'

@@ -157,7 +157,7 @@ const Home = () => {
         : 0;
 
     return (
-        <div className='min-h-screen bg-[#020617] text-slate-200 selection:bg-cyan-500/40 relative'>
+        <div className='min-h-screen bg-[#020617] text-slate-200 selection:bg-cyan-500/40 relative overflow-x-hidden'>
             <div className='fixed inset-0 pointer-events-none z-50 scanlines opacity-[0.03]'></div>
             {/* <Navbar /> */}
             <div className='fixed inset-0 overflow-hidden pointer-events-none z-0'>

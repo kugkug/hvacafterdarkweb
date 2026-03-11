@@ -11,7 +11,9 @@ import { Footer } from './components/Footer';
 const App = () => {
     return (
         <AuthProvider>
+            <div className='min-h-screen flex flex-col overflow-x-hidden w-full'>
             <Navbar />
+            <div className='flex-1 flex flex-col min-w-0'>
             <Routes>
                 <Route path='/' element={<Home />} />
                 <Route path='/memes' element={<Memes />} />
@@ -19,7 +21,9 @@ const App = () => {
                 <Route path='/community' element={<Community />} />
                 <Route path='/messages' element={<PrivateMessages />} />
             </Routes>
+            </div>
             <Footer />
+            </div>
         </AuthProvider>
     );
 };

@@ -116,42 +116,42 @@ const Main = ({
     };
 
     return (
-        <main className='relative z-10 max-w-[1400px] mx-auto p-6 md:p-12'>
+        <main className='relative z-10 max-w-[1400px] mx-auto px-4 py-6 sm:p-6 md:p-12 min-w-0'>
             {view === 'HOME' && (
-                <div className='space-y-40'>
-                    <div className='text-center py-20 space-y-10 animate-in fade-in slide-in-from-bottom-12 duration-1000'>
+                <div className='space-y-20 sm:space-y-32 md:space-y-40'>
+                    <div className='text-center py-12 sm:py-16 md:py-20 space-y-6 sm:space-y-10 animate-in fade-in slide-in-from-bottom-12 duration-1000'>
                         <div className='flex justify-center'>
-                            <div className='px-5 py-1.5 bg-slate-900/60 border border-cyan-500/10 rounded-full text-[10px] font-space text-cyan-500 tracking-[0.6em] uppercase font-bold backdrop-blur-md'>
+                            <div className='px-4 py-1.5 sm:px-5 bg-slate-900/60 border border-cyan-500/10 rounded-full text-[9px] sm:text-[10px] font-space text-cyan-500 tracking-[0.4em] sm:tracking-[0.6em] uppercase font-bold backdrop-blur-md'>
                                 Secure Operational Node
                             </div>
                         </div>
-                        <h2 className='text-4xl md:text-6xl font-syne font-extrabold leading-[1.2] tracking-tighter uppercase'>
+                        <h2 className='text-3xl sm:text-4xl md:text-6xl font-syne font-extrabold leading-[1.2] tracking-tighter uppercase px-1'>
                             SHIFT ENDS.
                             <br />
                             <span className='text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 animate-gradient-x neon-text-blue'>
                                 DARK TERMINAL OPEN.
                             </span>
                         </h2>
-                        <p className='text-slate-500 max-w-lg mx-auto italic text-lg font-light leading-relaxed'>
+                        <p className='text-slate-500 max-w-lg mx-auto italic text-base sm:text-lg font-light leading-relaxed px-2'>
                             The exclusive midnight lounge for the HVAC elite.
                             Field findings, technician humor, and unmoderated
                             shop talk.
                         </p>
-                        <div className='flex flex-col sm:flex-row justify-center gap-6 pt-8'>
+                        <div className='flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 pt-6 sm:pt-8'>
                             <NeonButton
                                 onClick={() =>
                                     auth.user
                                         ? setView('CHAT')
                                         : setShowAuth(true)
                                 }
-                                className='px-12 py-5 text-sm shadow-[0_0_30px_rgba(0,210,255,0.1)]'
+                                className='px-8 sm:px-12 py-4 sm:py-5 text-sm shadow-[0_0_30px_rgba(0,210,255,0.1)] w-full sm:w-auto'
                             >
                                 ENTER CHAT
                             </NeonButton>
                             {!auth.user && (
                                 <button
                                     onClick={() => setShowAuth(true)}
-                                    className='px-12 py-5 text-sm font-space font-bold border border-slate-900 rounded-lg hover:border-slate-700 transition-all text-slate-600 hover:text-slate-200 uppercase tracking-widest bg-slate-950/40'
+                                    className='px-8 sm:px-12 py-4 sm:py-5 text-sm font-space font-bold border border-slate-900 rounded-lg hover:border-slate-700 transition-all text-slate-600 hover:text-slate-200 uppercase tracking-widest bg-slate-950/40 w-full sm:w-auto'
                                 >
                                     SIGN IN
                                 </button>
@@ -159,11 +159,11 @@ const Main = ({
                         </div>
                     </div>
 
-                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-24'>
-                        <section className='space-y-10'>
-                            <div className='flex justify-between items-end border-b border-white/5 pb-6'>
-                                <div>
-                                    <h3 className='text-xl font-syne font-bold text-slate-100 uppercase tracking-tighter'>
+                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-16 sm:gap-20 md:gap-24'>
+                        <section className='space-y-8 sm:space-y-10 min-w-0'>
+                            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 border-b border-white/5 pb-4 sm:pb-6'>
+                                <div className='min-w-0'>
+                                    <h3 className='text-lg sm:text-xl font-syne font-bold text-slate-100 uppercase tracking-tighter'>
                                         Meme Stream
                                     </h3>
                                     <p className='text-[9px] text-slate-600 font-space uppercase tracking-[0.4em] mt-1.5 font-bold'>
@@ -176,12 +176,12 @@ const Main = ({
                                             ? setView('MEMES')
                                             : setShowAuth(true)
                                     }
-                                    className='text-[10px] font-space font-bold text-cyan-600 hover:text-cyan-400 transition-all uppercase tracking-[0.25em]'
+                                    className='text-[10px] font-space font-bold text-cyan-600 hover:text-cyan-400 transition-all uppercase tracking-[0.25em] flex-shrink-0'
                                 >
                                     VIEW ALL
                                 </button>
                             </div>
-                            <div className='grid grid-cols-3 gap-6'>
+                            <div className='grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6'>
                                 {memes.slice(0, 3).map((m) => (
                                     <div
                                         key={m.id}
@@ -204,10 +204,10 @@ const Main = ({
                             </div>
                         </section>
 
-                        <section className='space-y-10'>
-                            <div className='flex justify-between items-end border-b border-white/5 pb-6'>
-                                <div>
-                                    <h3 className='text-xl font-syne font-bold text-slate-100 uppercase tracking-tighter'>
+                        <section className='space-y-8 sm:space-y-10 min-w-0'>
+                            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 border-b border-white/5 pb-4 sm:pb-6'>
+                                <div className='min-w-0'>
+                                    <h3 className='text-lg sm:text-xl font-syne font-bold text-slate-100 uppercase tracking-tighter'>
                                         Field Artifacts
                                     </h3>
                                     <p className='text-[9px] text-slate-600 font-space uppercase tracking-[0.4em] mt-1.5 font-bold'>
@@ -220,12 +220,12 @@ const Main = ({
                                             ? setView('FINDS')
                                             : setShowAuth(true)
                                     }
-                                    className='text-[10px] font-space font-bold text-purple-600 hover:text-purple-400 transition-all uppercase tracking-[0.25em]'
+                                    className='text-[10px] font-space font-bold text-purple-600 hover:text-purple-400 transition-all uppercase tracking-[0.25em] flex-shrink-0'
                                 >
                                     FILES →
                                 </button>
                             </div>
-                            <div className='grid grid-cols-3 gap-6'>
+                            <div className='grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6'>
                                 {finds.slice(0, 3).map((f) => (
                                     <div
                                         key={f.id}
@@ -260,10 +260,10 @@ const Main = ({
             {view === 'MOD_LOGS' && auth.user && <ModLog logs={modLogs} />}
 
             {(view === 'MEMES' || view === 'FINDS') && auth.user && (
-                <div className='space-y-12 animate-in fade-in duration-700'>
-                    <div className='flex justify-between items-center border-b border-white/5 pb-8'>
-                        <div className='space-y-1'>
-                            <h2 className='text-3xl font-syne font-bold text-slate-100 tracking-tighter uppercase'>
+                <div className='space-y-8 sm:space-y-12 animate-in fade-in duration-700'>
+                    <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-white/5 pb-6 sm:pb-8'>
+                        <div className='space-y-1 min-w-0'>
+                            <h2 className='text-2xl sm:text-3xl font-syne font-bold text-slate-100 tracking-tighter uppercase'>
                                 {view === 'MEMES'
                                     ? 'The Meme Lab'
                                     : 'Mechanical Finds'}
@@ -275,7 +275,7 @@ const Main = ({
                             </p>
                         </div>
                         <label
-                            className={`cursor-pointer ${
+                            className={`cursor-pointer flex-shrink-0 w-full sm:w-auto text-center ${
                                 view === 'MEMES'
                                     ? 'bg-cyan-600 hover:bg-cyan-500'
                                     : 'bg-purple-600 hover:bg-purple-500'
