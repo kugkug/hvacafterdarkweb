@@ -219,50 +219,30 @@ const Community = () => {
 
                                     {!msg.isDeleted && (
                                         <div className='flex items-center mt-2 space-x-4 opacity-0 group-hover:opacity-100 transition-all'>
-                                            {/* <button
-                                                onClick={() => setReplyTo(msg)}
-                                                className='text-[9px] text-slate-600 hover:text-cyan-400 uppercase font-space tracking-widest font-bold'
-                                            >
-                                                REPLY
-                                            </button> */}
-                                            {/* <button
-                                                onClick={() =>
-                                                    handleThumbUp(msg.id)
-                                                }
-                                                className={`text-[9px] uppercase font-space tracking-widest flex items-center space-x-1`}
-                                            >
-                                                <span className='font-bold'>
-                                                    HELPFUL
-                                                </span>
-                                                <span className='text-emerald-500 font-bold opacity-80'>
-                                                    👍{' '}
-                                                    {msg.thumbsUps.length || ''}
-                                                </span>
-                                            </button> */}
-                                            {/* {canModify(msg) && ( */}
-                                            <button
-                                                onClick={() => {
-                                                    setNewMessage(msg.body);
-                                                }}
-                                                className='text-[9px] text-amber-500/60 hover:text-amber-500 uppercase font-space tracking-widest font-bold'
-                                            >
-                                                EDIT
-                                            </button>
-                                            {/* )} */}
-                                            {/* {(user.role === 'ADMIN' ||
-                                                user.role === 'MODERATOR') && ( */}
-
                                             {msg.user.email === user && (
-                                                <button
-                                                    onClick={() =>
-                                                        handlePurgeMessage(msg)
-                                                    }
-                                                    className='text-[9px] text-red-500/60 hover:text-red-500 uppercase font-space tracking-widest font-bold'
-                                                >
-                                                    DELETE
-                                                </button>
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            setNewMessage(
+                                                                msg.body
+                                                            );
+                                                        }}
+                                                        className='text-[9px] text-amber-500/60 hover:text-amber-500 uppercase font-space tracking-widest font-bold'
+                                                    >
+                                                        EDIT
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handlePurgeMessage(
+                                                                msg
+                                                            )
+                                                        }
+                                                        className='text-[9px] text-red-500/60 hover:text-red-500 uppercase font-space tracking-widest font-bold'
+                                                    >
+                                                        DELETE
+                                                    </button>
+                                                </>
                                             )}
-                                            {/* )} */}
                                         </div>
                                     )}
                                 </div>
