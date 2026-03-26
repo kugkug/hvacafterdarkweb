@@ -9,6 +9,7 @@ import axios from 'axios';
 import { User, PrivateMessage } from '../types';
 import { OTHER_USERS, MOCK_PMS, MOCK_USER } from '../constants';
 import { useAuth } from '../utilities/auth';
+import usePost from '../custom_hooks/usePost';
 
 const formatTime = (date: Date) =>
     date
@@ -76,6 +77,9 @@ function mapApiPrivateMessage(
     const senderObj = raw.sender as Record<string, unknown> | undefined;
     let senderId = String(raw.sender_id ?? raw.user_id ?? senderObj?.id ?? '');
     let receiverId = String(raw.receiver_id ?? raw.recipient_id ?? '');
+    let senderEmail = String(
+        (raw.user as Record<string, unknown>)?.email ?? ''
+    );
 
     if (!receiverId || receiverId === 'undefined') {
         if (senderId === String(otherUserId)) {
@@ -94,6 +98,22 @@ function mapApiPrivateMessage(
         }
     }
 
+    if (!senderEmail) {
+        senderEmail = String(
+            (raw.user as Record<string, unknown>)?.email ?? ''
+        );
+        if (!senderEmail) {
+            senderEmail = String(
+                (raw.contact as Record<string, unknown>)?.email ?? ''
+            );
+        }
+        if (!senderEmail) {
+            senderEmail = String(
+                (raw.other_user as Record<string, unknown>)?.email ?? ''
+            );
+        }
+    }
+
     const ts =
         raw.created_at ?? raw.updated_at ?? raw.timestamp ?? raw.created_time;
     const timestamp = ts ? new Date(String(ts)) : new Date();
@@ -105,7 +125,8 @@ function mapApiPrivateMessage(
         receiverId,
         content,
         timestamp,
-        isRead
+        isRead,
+        senderEmail
     };
 }
 
@@ -119,6 +140,7 @@ function parsePrivateMessagesPayload(
         : ((data as Record<string, unknown>)?.data ??
           (data as Record<string, unknown>)?.messages ??
           []);
+
     const list = Array.isArray(rawList) ? rawList : [];
     return list.map((item, index) =>
         mapApiPrivateMessage(
@@ -167,6 +189,44 @@ export const PrivateMessages: React.FC = () => {
     const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
         null
     );
+
+    const fetchPrivateThreadMessages = useCallback(
+        async (
+            recipientId: string,
+            signal?: AbortSignal
+        ): Promise<PrivateMessage[]> => {
+            const res = await axios.get(
+                import.meta.env.VITE_API_URL +
+                    `/messages/private/${encodeURIComponent(recipientId)}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    signal
+                }
+            );
+            return parsePrivateMessagesPayload(
+                res.data,
+                recipientId,
+                currentUserId
+            );
+        },
+        [token, currentUserId]
+    );
+
+    const {
+        postData,
+        loading: sendLoading,
+        error: messageError
+    } = usePost('/messages/private');
+
+    const refetchThread = useCallback(async () => {
+        if (!selectedUserId || !token) return;
+        const parsed = await fetchPrivateThreadMessages(selectedUserId);
+        setThreadMessages(parsed);
+    }, [selectedUserId, token, fetchPrivateThreadMessages]);
 
     useEffect(() => {
         if (!token) {
@@ -345,46 +405,38 @@ export const PrivateMessages: React.FC = () => {
             return;
         }
 
-        let cancelled = false;
+        const controller = new AbortController();
         setThreadLoading(true);
         setThreadError(null);
         setThreadMessages([]);
 
-        const apiUrl =
-            import.meta.env.VITE_API_URL +
-            `/messages/private/${encodeURIComponent(selectedUserId)}`;
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`
-        };
-
-        axios
-            .get(apiUrl, { headers })
-            .then((res) => {
-                if (cancelled) return;
-                const parsed = parsePrivateMessagesPayload(
-                    res.data,
-                    selectedUserId,
-                    currentUserId
-                );
+        fetchPrivateThreadMessages(selectedUserId, controller.signal)
+            .then((parsed) => {
                 setThreadMessages(parsed);
             })
-            .catch((err) => {
-                if (cancelled) return;
+            .catch((err: unknown) => {
+                const e = err as { code?: string; name?: string };
+                if (
+                    e?.code === 'ERR_CANCELED' ||
+                    e?.name === 'CanceledError' ||
+                    e?.name === 'AbortError'
+                ) {
+                    return;
+                }
                 setThreadError(
-                    err.response?.data?.message || 'Failed to load messages'
+                    (err as { response?: { data?: { message?: string } } })
+                        .response?.data?.message || 'Failed to load messages'
                 );
                 setThreadMessages([]);
             })
             .finally(() => {
-                if (!cancelled) setThreadLoading(false);
+                setThreadLoading(false);
             });
 
         return () => {
-            cancelled = true;
+            controller.abort();
         };
-    }, [selectedUserId, token, currentUserId]);
+    }, [selectedUserId, token, currentUserId, fetchPrivateThreadMessages]);
 
     const handleSelectConversation = (contact: PmContact) => {
         setSelectedUserId(contact.id);
@@ -392,27 +444,59 @@ export const PrivateMessages: React.FC = () => {
         setMobilePanel('chat');
     };
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inputText.trim() || !selectedUserId) return;
+        const text = inputText.trim();
+        if (!text || !selectedUserId) return;
 
-        const newMessage: PrivateMessage = {
-            id: `pm-${Date.now()}`,
-            senderId: currentUserId,
-            receiverId: selectedUserId,
-            content: inputText.trim(),
-            timestamp: new Date(),
-            isRead: false
-        };
+        if (!token) {
+            const newMessage: PrivateMessage = {
+                id: `pm-${Date.now()}`,
+                senderId: currentUserId,
+                receiverId: selectedUserId,
+                content: text,
+                timestamp: new Date(),
+                isRead: false
+            };
+            setThreadMessages((prev) => [...prev, newMessage]);
+            setInputText('');
+            return;
+        }
 
-        setThreadMessages((prev) => [...prev, newMessage]);
-        setInputText('');
+        const postResponse = await postData({
+            recipient_id: selectedUserId,
+            body: text
+        });
+
+        if (postResponse?.status === true) {
+            setInputText('');
+            await refetchThread();
+        }
     };
 
     useEffect(() => {
         if (scrollRef.current)
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [sortedThreadMessages, selectedUserId]);
+
+    // Pusher/Reverb: same pattern as Community — private thread channel + .message.sent
+    useEffect(() => {
+        if (!window.Echo || !selectedUserId || !token) return;
+
+        const channel = window.Echo.private(
+            `private-messages.${selectedUserId}`
+        );
+
+        channel.listen('.message.sent', () => {
+            fetchPrivateThreadMessages(selectedUserId)
+                .then(setThreadMessages)
+                .catch(() => {});
+        });
+
+        return () => {
+            window.Echo?.leave(`private-messages.${selectedUserId}`);
+        };
+    }, [selectedUserId, token, fetchPrivateThreadMessages, refetchThread]);
 
     return (
         <main className='relative z-10 w-full max-w-[1400px] mx-auto px-4 py-6 sm:p-6 md:p-12 min-w-0'>
@@ -613,8 +697,8 @@ export const PrivateMessages: React.FC = () => {
                                     !threadError &&
                                     sortedThreadMessages.map((msg) => {
                                         const isOwnMessage =
-                                            String(msg.senderId) ===
-                                            String(currentUserId);
+                                            String(msg.senderEmail) ===
+                                            String(authEmail);
                                         const senderLabel = isOwnMessage
                                             ? displayName ||
                                               authEmail?.split('@')[0] ||
@@ -666,7 +750,12 @@ export const PrivateMessages: React.FC = () => {
                                     )}
                             </div>
 
-                            <div className='p-4 sm:p-6 border-t border-cyan-500/5 bg-slate-950/80'>
+                            <div className='p-4 sm:p-6 border-t border-cyan-500/5 bg-slate-950/80 space-y-2'>
+                                {messageError && (
+                                    <p className='text-[10px] font-space text-red-500/90 text-center'>
+                                        {messageError}
+                                    </p>
+                                )}
                                 <form
                                     onSubmit={handleSendMessage}
                                     className='relative'
@@ -677,13 +766,17 @@ export const PrivateMessages: React.FC = () => {
                                             setInputText(e.target.value)
                                         }
                                         placeholder='Send Message'
-                                        className='w-full bg-slate-900/40 border border-white/5 rounded-xl pl-4 pr-20 sm:px-6 py-3 sm:py-4 text-xs focus:outline-none focus:border-cyan-500/20 transition-all text-slate-200 placeholder:text-slate-800 font-light'
+                                        disabled={sendLoading}
+                                        className='w-full bg-slate-900/40 border border-white/5 rounded-xl pl-4 pr-24 sm:px-6 py-3 sm:py-4 text-xs focus:outline-none focus:border-cyan-500/20 transition-all text-slate-200 placeholder:text-slate-800 font-light disabled:opacity-50'
                                     />
                                     <button
                                         type='submit'
-                                        className='absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 text-cyan-700 font-space text-[10px] font-bold tracking-widest hover:text-cyan-500 uppercase'
+                                        disabled={
+                                            sendLoading || !inputText.trim()
+                                        }
+                                        className='absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 text-cyan-700 font-space text-[10px] font-bold tracking-widest hover:text-cyan-500 uppercase disabled:opacity-40 disabled:cursor-not-allowed'
                                     >
-                                        SEND
+                                        {sendLoading ? '...' : 'SEND'}
                                     </button>
                                 </form>
                             </div>

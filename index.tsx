@@ -37,7 +37,6 @@ const echo = new Echo({
         }
     }
 });
-console.log(echo);
 
 window.Echo = echo; // Optional: make globally available (for debugging)
 

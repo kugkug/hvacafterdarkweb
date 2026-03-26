@@ -44,6 +44,8 @@ export interface PrivateMessage {
     content: string;
     timestamp: Date;
     isRead: boolean;
+    /** Present when mapped from API (for display / ownership checks). */
+    senderEmail?: string;
 }
 
 export interface ChatRoom {

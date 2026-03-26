@@ -78,7 +78,6 @@ const Community = () => {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        console.log(conversationData);
         if (conversationData) {
             setConversationName(conversationData.conversation.name);
             setConversationDescription(
