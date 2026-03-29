@@ -57,6 +57,11 @@ export const Navbar = () => {
                                 PMs
                             </button>
                         </Link>
+                        <Link to='/profile'>
+                            <button className={navLinkClass(currentLocation === '/profile')}>
+                                PROFILE
+                            </button>
+                        </Link>
                         <span className='text-[10px] font-space font-bold tracking-[0.15em] text-cyan-400 uppercase whitespace-nowrap'>
                             {auth.user}
                         </span>
@@ -112,6 +117,9 @@ export const Navbar = () => {
                                 </Link>
                                 <Link to='/messages' onClick={() => setMobileMenuOpen(false)}>
                                     <button className={navLinkClass(currentLocation === '/messages')}>PMs</button>
+                                </Link>
+                                <Link to='/profile' onClick={() => setMobileMenuOpen(false)}>
+                                    <button className={navLinkClass(currentLocation === '/profile')}>PROFILE</button>
                                 </Link>
                                 <div className='pt-3 mt-2 border-t border-white/5'>
                                     <NeonButton onClick={() => { auth.logout(); setMobileMenuOpen(false); }} className='w-full'>

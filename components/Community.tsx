@@ -83,12 +83,14 @@ const Community = () => {
             setConversationDescription(
                 conversationData.conversation.description
             );
+            console.log(1);
         }
     }, [conversationData]);
 
     useEffect(() => {
         if (data && data.status === true) {
             setChat(data.data);
+            console.log(2);
         }
     }, [data]);
 
@@ -102,6 +104,7 @@ const Community = () => {
             console.log('message.sent');
             refetchConversation();
         });
+        console.log(3);
 
         return () => {
             window.Echo?.leave(`private-conversation.${activeRoomId}`);
@@ -118,6 +121,7 @@ const Community = () => {
             refetch();
         });
 
+        console.log(4);
         return () => {
             window.Echo?.leave('community');
         };
@@ -126,6 +130,8 @@ const Community = () => {
     useEffect(() => {
         if (scrollRef.current)
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+
+        console.log(5);
     }, [conversationData, activeRoomId]);
 
     return (
@@ -249,22 +255,31 @@ const Community = () => {
                         })}
                     </div>
 
-                    <div className='p-4 sm:p-6 border-t border-white/5 bg-slate-950/80'>
-                        <form onSubmit={handleSendMessage} className='relative'>
-                            <input
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder='Send Message'
-                                className='w-full bg-slate-900/40 border border-white/5 rounded-xl pl-4 pr-20 sm:px-6 py-3 sm:py-4 text-xs focus:outline-none focus:border-cyan-500/20 transition-all text-slate-200 placeholder:text-slate-800 font-light'
-                            />
-                            <button
-                                type='submit'
-                                className='absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 text-cyan-700 font-space text-[10px] font-bold tracking-widest hover:text-cyan-500 uppercase'
-                            >
-                                SEND
-                            </button>
-                        </form>
-                    </div>
+                    {activeRoomId && (
+                        <>
+                            <div className='p-4 sm:p-6 border-t border-white/5 bg-slate-950/80'>
+                                <form
+                                    onSubmit={handleSendMessage}
+                                    className='relative'
+                                >
+                                    <input
+                                        value={newMessage}
+                                        onChange={(e) =>
+                                            setNewMessage(e.target.value)
+                                        }
+                                        placeholder='Send Message'
+                                        className='w-full bg-slate-900/40 border border-white/5 rounded-xl pl-4 pr-20 sm:px-6 py-3 sm:py-4 text-xs focus:outline-none focus:border-cyan-500/20 transition-all text-slate-200 placeholder:text-slate-800 font-light'
+                                    />
+                                    <button
+                                        type='submit'
+                                        className='absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 text-cyan-700 font-space text-[10px] font-bold tracking-widest hover:text-cyan-500 uppercase'
+                                    >
+                                        SEND
+                                    </button>
+                                </form>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* RIGHT: Rooms & Categories — sidebar on desktop, drawer on mobile */}
@@ -301,6 +316,7 @@ const Community = () => {
                             </svg>
                         </button>
                     </div>
+
                     <div className='flex-1 overflow-y-auto px-4 md:px-6 space-y-6 scrollbar-hide pb-6'>
                         {chat &&
                             chat.map((chat: any) => (

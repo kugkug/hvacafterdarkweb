@@ -6,6 +6,7 @@ import Memes from './components/Memes';
 import Finds from './components/Finds';
 import Community from './components/Community';
 import { PrivateMessages } from './components/PrivateMessages';
+import UserProfile from './components/UserProfile';
 import { Footer } from './components/Footer';
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
                 <Route path='/finds' element={<Finds />} />
                 <Route path='/community' element={<Community />} />
                 <Route path='/messages' element={<PrivateMessages />} />
+                <Route path='/profile' element={<UserProfile />} />
             </Routes>
             </div>
             <Footer />

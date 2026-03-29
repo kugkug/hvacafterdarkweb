@@ -479,6 +479,16 @@ export const PrivateMessages: React.FC = () => {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [sortedThreadMessages, selectedUserId]);
 
+    // useEffect(() => {
+    //     if (conversationData) {
+    //         setConversationName(conversationData.conversation.name);
+    //         setConversationDescription(
+    //             conversationData.conversation.description
+    //         );
+    //         console.log(1);
+    //     }
+    // }, [conversationData]);
+
     // Pusher/Reverb: same pattern as Community — private thread channel + .message.sent
     useEffect(() => {
         if (!window.Echo || !selectedUserId || !token) return;
