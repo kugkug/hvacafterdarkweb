@@ -4,12 +4,7 @@ import { ModLogEntry, Post, User } from '../types';
 import { ChatWindow } from './ChatWindow';
 import { PrivateMessages } from './PrivateMessages';
 import { ModLog } from './ModLog';
-import {
-    ADMIN_EMAIL,
-    MOCK_FINDS,
-    MOCK_MOD_LOGS,
-    MOCK_USER
-} from '../constants';
+import { ADMIN_EMAIL, MOCK_FINDS, MOCK_MOD_LOGS } from '../constants';
 import { Footer } from './Footer';
 import { useAuth } from '../utilities/auth';
 
@@ -53,7 +48,24 @@ const Main = ({
     );
 
     const handleLogin = () => {
-        setCurrentUser(MOCK_USER);
+        if (auth.user) {
+            setCurrentUser({
+                id: '',
+                username: auth.name ?? auth.user.split('@')[0] ?? 'Member',
+                email: auth.user,
+                phone: '',
+                role: 'MEMBER',
+                thumbsUpCount: 0,
+                profileVisibility: {
+                    company: false,
+                    position: false,
+                    bio: false
+                },
+                allowPMs: true,
+                isBanned: false,
+                isLimited: false
+            });
+        }
         setShowAuth(false);
     };
 

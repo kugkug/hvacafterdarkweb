@@ -83,14 +83,12 @@ const Community = () => {
             setConversationDescription(
                 conversationData.conversation.description
             );
-            console.log(1);
         }
     }, [conversationData]);
 
     useEffect(() => {
         if (data && data.status === true) {
             setChat(data.data);
-            console.log(2);
         }
     }, [data]);
 
@@ -99,15 +97,11 @@ const Community = () => {
         if (!window.Echo || !activeRoomId) return;
 
         const channel = window.Echo.private(`conversation.${activeRoomId}`);
-
         channel.listen('.message.sent', () => {
-            console.log('message.sent');
             refetchConversation();
         });
-        console.log(3);
-
         return () => {
-            window.Echo?.leave(`private-conversation.${activeRoomId}`);
+            window.Echo?.leave(`conversation.${activeRoomId}`);
         };
     }, [activeRoomId, refetchConversation]);
 
@@ -121,7 +115,6 @@ const Community = () => {
             refetch();
         });
 
-        console.log(4);
         return () => {
             window.Echo?.leave('community');
         };
@@ -130,8 +123,6 @@ const Community = () => {
     useEffect(() => {
         if (scrollRef.current)
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-
-        console.log(5);
     }, [conversationData, activeRoomId]);
 
     return (

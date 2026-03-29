@@ -1,62 +1,6 @@
-import {
-    Category,
-    ChatRoom,
-    Post,
-    User,
-    PrivateMessage,
-    ModLogEntry
-} from './types';
+import { Category, ChatRoom, Post, ModLogEntry } from './types';
 
 export const ADMIN_EMAIL = 'admin@hvacafterdark.com';
-
-export const MOCK_USER: User = {
-    id: 'u1',
-    username: 'FrostyTech',
-    email: 'tech@example.com',
-    phone: '555-0199',
-    title: 'Senior Technician',
-    company: 'Arctic Solutions',
-    position: 'Lead HVAC',
-    bio: 'Fixing chillers since 95.',
-    yearsInIndustry: 28,
-    role: 'ADMIN',
-    thumbsUpCount: 154,
-    profileVisibility: { company: true, position: true, bio: true },
-    allowPMs: true,
-    isBanned: false,
-    isLimited: false
-};
-
-export const OTHER_USERS: User[] = [
-    {
-        id: 'u2',
-        username: 'CompressorKing',
-        email: 'king@example.com',
-        phone: '555-0200',
-        title: 'Commercial specialist',
-        company: 'Big Cold Inc',
-        position: 'Lead',
-        role: 'MEMBER',
-        thumbsUpCount: 45,
-        profileVisibility: { company: true, position: true, bio: true },
-        allowPMs: true,
-        isBanned: false,
-        isLimited: false
-    },
-    {
-        id: 'u3',
-        username: 'VoltageViking',
-        email: 'viking@example.com',
-        phone: '555-0300',
-        title: 'Electrical HVAC',
-        role: 'TRUSTED',
-        thumbsUpCount: 88,
-        profileVisibility: { company: true, position: true, bio: true },
-        allowPMs: true,
-        isBanned: false,
-        isLimited: false
-    }
-];
 
 export const MOCK_CATEGORIES: Category[] = [
     { id: 'c1', name: 'Shop Talk', isPending: false, createdBy: 'u1' },
@@ -185,33 +129,6 @@ export const MOCK_FINDS: Post[] = [
         timestamp: new Date(),
         likes: 43,
         isApproved: true
-    }
-];
-
-export const MOCK_PMS: PrivateMessage[] = [
-    {
-        id: 'pm1',
-        senderId: 'u2',
-        receiverId: 'u1',
-        content: 'Hey Frosty, got a question about that York chiller.',
-        timestamp: new Date(Date.now() - 86400000),
-        isRead: true
-    },
-    {
-        id: 'pm2',
-        senderId: 'u1',
-        receiverId: 'u2',
-        content: 'Sure thing, what is on your mind?',
-        timestamp: new Date(Date.now() - 86000000),
-        isRead: true
-    },
-    {
-        id: 'pm3',
-        senderId: 'u3',
-        receiverId: 'u1',
-        content: 'Check out the latest find I posted, it is crazy.',
-        timestamp: new Date(Date.now() - 3600000),
-        isRead: false
     }
 ];
 

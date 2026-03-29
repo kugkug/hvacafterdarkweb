@@ -7,11 +7,9 @@ import Signin from './Signin';
 import { useAuth } from '../utilities/auth';
 
 import {
-    MOCK_USER,
     MOCK_MEMES,
     MOCK_FINDS,
     ADMIN_EMAIL,
-    MOCK_PMS,
     MOCK_MOD_LOGS
 } from '../constants';
 
@@ -72,11 +70,10 @@ const Home = () => {
         MOCK_FINDS.map((f) => ({ ...f, isApproved: true }))
     );
     const [uploading, setUploading] = useState(false);
-    const [pms] = useState<PrivateMessage[]>(MOCK_PMS);
+    const [pms] = useState<PrivateMessage[]>([]);
     const [modLogs, setModLogs] = useState<ModLogEntry[]>(MOCK_MOD_LOGS);
 
     // const handleLogin = () => {
-    //     setCurrentUser(MOCK_USER);
     //     setShowAuth(false);
     //     setShowRegister(false);
     // };

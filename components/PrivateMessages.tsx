@@ -7,9 +7,9 @@ import React, {
 } from 'react';
 import axios from 'axios';
 import { User, PrivateMessage } from '../types';
-import { OTHER_USERS, MOCK_PMS, MOCK_USER } from '../constants';
 import { useAuth } from '../utilities/auth';
 import usePost from '../custom_hooks/usePost';
+import useFetch from '../custom_hooks/useFetch';
 
 const formatTime = (date: Date) =>
     date
@@ -152,21 +152,44 @@ function parsePrivateMessagesPayload(
     );
 }
 
-function resolveCurrentUserId(authEmail: string | null): string {
-    if (!authEmail) return MOCK_USER.id;
-    if (authEmail === MOCK_USER.email) return MOCK_USER.id;
-    const match = OTHER_USERS.find((u) => u.email === authEmail);
-    return match?.id ?? MOCK_USER.id;
+function unwrapMeId(data: unknown): string {
+    if (!data || typeof data !== 'object') return '';
+    const d = data as Record<string, unknown>;
+    const inner = (d.data ?? d.user ?? d) as Record<string, unknown>;
+    if (inner && typeof inner === 'object' && inner.id != null) {
+        return String(inner.id);
+    }
+    return '';
+}
+
+function pmEventPayload(raw: unknown): Record<string, unknown> | undefined {
+    if (!raw || typeof raw !== 'object') return undefined;
+    const r = raw as Record<string, unknown>;
+    const inner = r.message;
+    if (inner && typeof inner === 'object') {
+        return inner as Record<string, unknown>;
+    }
+    return r;
+}
+
+function otherPartyFromPayload(
+    payload: Record<string, unknown> | undefined,
+    myId: string
+): string | null {
+    if (!payload || !myId) return null;
+    const my = String(myId);
+    const s = String(payload.sender_id ?? payload.user_id ?? '');
+    const r = String(payload.recipient_id ?? payload.receiver_id ?? '');
+    if (!s || !r) return null;
+    if (s === my && r !== my) return r;
+    if (r === my && s !== my) return s;
+    return null;
 }
 
 export const PrivateMessages: React.FC = () => {
     const { user: authEmail, name: displayName, token } = useAuth();
-    const currentUserId = useMemo(
-        () => resolveCurrentUserId(authEmail),
-        [authEmail]
-    );
-
-    const fallbackContacts = useMemo(() => OTHER_USERS.map(userToContact), []);
+    const { data: meData } = useFetch('/user/me', null, !!token);
+    const currentUserId = useMemo(() => unwrapMeId(meData), [meData]);
 
     const [contactById, setContactById] = useState<Record<string, PmContact>>(
         {}
@@ -186,9 +209,19 @@ export const PrivateMessages: React.FC = () => {
     const [inputText, setInputText] = useState('');
     const [mobilePanel, setMobilePanel] = useState<'list' | 'chat'>('list');
     const scrollRef = useRef<HTMLDivElement>(null);
+    const selectedUserIdRef = useRef<string | null>(null);
+    const currentUserIdRef = useRef('');
     const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
         null
     );
+
+    useEffect(() => {
+        selectedUserIdRef.current = selectedUserId;
+    }, [selectedUserId]);
+
+    useEffect(() => {
+        currentUserIdRef.current = currentUserId;
+    }, [currentUserId]);
 
     const fetchPrivateThreadMessages = useCallback(
         async (
@@ -207,6 +240,7 @@ export const PrivateMessages: React.FC = () => {
                     signal
                 }
             );
+
             return parsePrivateMessagesPayload(
                 res.data,
                 recipientId,
@@ -230,17 +264,11 @@ export const PrivateMessages: React.FC = () => {
 
     useEffect(() => {
         if (!token) {
-            const map = Object.fromEntries(
-                OTHER_USERS.map((u) => [u.id, userToContact(u)])
-            );
-            setContactById(map);
-            setApiContacts(fallbackContacts);
+            setContactById({});
+            setApiContacts([]);
             setContactsError(null);
             setContactsLoading(false);
-            setSelectedUserId((prev) => {
-                if (prev && map[prev]) return prev;
-                return OTHER_USERS[0]?.id ?? null;
-            });
+            setSelectedUserId(null);
             return;
         }
 
@@ -296,7 +324,7 @@ export const PrivateMessages: React.FC = () => {
         return () => {
             cancelled = true;
         };
-    }, [token, authEmail, currentUserId, fallbackContacts]);
+    }, [token, authEmail, currentUserId]);
 
     const runUserSearch = useCallback(
         (q: string) => {
@@ -367,12 +395,14 @@ export const PrivateMessages: React.FC = () => {
 
     const listContacts = useMemo(() => {
         if (searchQuery.trim()) return searchResults;
-        if (!token) return fallbackContacts;
+        if (!token) return [];
         return apiContacts;
-    }, [searchQuery, searchResults, token, fallbackContacts, apiContacts]);
+    }, [searchQuery, searchResults, token, apiContacts]);
 
     const selectedUser = selectedUserId
-        ? (contactById[selectedUserId] ?? null)
+        ? (contactById[selectedUserId] ??
+          listContacts.find((c) => c.id === selectedUserId) ??
+          null)
         : null;
 
     const sortedThreadMessages = useMemo(
@@ -392,14 +422,7 @@ export const PrivateMessages: React.FC = () => {
         }
 
         if (!token) {
-            const local = MOCK_PMS.filter(
-                (m) =>
-                    (m.senderId === currentUserId &&
-                        m.receiverId === selectedUserId) ||
-                    (m.senderId === selectedUserId &&
-                        m.receiverId === currentUserId)
-            );
-            setThreadMessages(local);
+            setThreadMessages([]);
             setThreadError(null);
             setThreadLoading(false);
             return;
@@ -447,21 +470,7 @@ export const PrivateMessages: React.FC = () => {
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         const text = inputText.trim();
-        if (!text || !selectedUserId) return;
-
-        if (!token) {
-            const newMessage: PrivateMessage = {
-                id: `pm-${Date.now()}`,
-                senderId: currentUserId,
-                receiverId: selectedUserId,
-                content: text,
-                timestamp: new Date(),
-                isRead: false
-            };
-            setThreadMessages((prev) => [...prev, newMessage]);
-            setInputText('');
-            return;
-        }
+        if (!text || !selectedUserId || !token) return;
 
         const postResponse = await postData({
             recipient_id: selectedUserId,
@@ -479,34 +488,48 @@ export const PrivateMessages: React.FC = () => {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [sortedThreadMessages, selectedUserId]);
 
-    // useEffect(() => {
-    //     if (conversationData) {
-    //         setConversationName(conversationData.conversation.name);
-    //         setConversationDescription(
-    //             conversationData.conversation.description
-    //         );
-    //         console.log(1);
-    //     }
-    // }, [conversationData]);
-
-    // Pusher/Reverb: same pattern as Community — private thread channel + .message.sent
+    // Reverb: private channel user.{auth id} — same event names as Community (see backend broadcastAs).
     useEffect(() => {
-        if (!window.Echo || !selectedUserId || !token) return;
+        if (!window.Echo || !token || !currentUserId) return;
 
-        const channel = window.Echo.private(
-            `private-messages.${selectedUserId}`
-        );
+        const channelName = `user.${currentUserId}`;
+        const channel = window.Echo.private(channelName);
 
-        channel.listen('.message.sent', () => {
-            fetchPrivateThreadMessages(selectedUserId)
+        const onRealtimeMessage = (raw?: unknown) => {
+            let sid = selectedUserIdRef.current;
+            if (!sid) {
+                const p = pmEventPayload(raw);
+                const other = otherPartyFromPayload(
+                    p,
+                    currentUserIdRef.current
+                );
+                if (other) sid = other;
+            }
+            if (!sid) return;
+            fetchPrivateThreadMessages(sid)
                 .then(setThreadMessages)
                 .catch(() => {});
-        });
+        };
+
+        // Laravel `broadcastAs(): 'message.sent'` → listen with leading dot; some apps use `private.message`
+        channel.listen('.message.sent', onRealtimeMessage);
+        channel.listen('.private.message', onRealtimeMessage);
 
         return () => {
-            window.Echo?.leave(`private-messages.${selectedUserId}`);
+            window.Echo?.leave(channelName);
         };
-    }, [selectedUserId, token, fetchPrivateThreadMessages, refetchThread]);
+    }, [token, currentUserId, fetchPrivateThreadMessages]);
+
+    // Fallback if event name or channel differs from backend — keeps thread fresh while open
+    useEffect(() => {
+        if (!token || !selectedUserId) return;
+        const id = window.setInterval(() => {
+            void fetchPrivateThreadMessages(selectedUserId)
+                .then(setThreadMessages)
+                .catch(() => {});
+        }, 12000);
+        return () => window.clearInterval(id);
+    }, [token, selectedUserId, fetchPrivateThreadMessages]);
 
     return (
         <main className='relative z-10 w-full max-w-[1400px] mx-auto px-4 py-6 sm:p-6 md:p-12 min-w-0'>
@@ -537,6 +560,11 @@ export const PrivateMessages: React.FC = () => {
                         />
                     </div>
                     <div className='flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 scrollbar-hide min-h-0'>
+                        {!token && (
+                            <p className='text-center text-[10px] font-space text-slate-600 uppercase tracking-widest py-10 px-2'>
+                                Sign in to view conversations
+                            </p>
+                        )}
                         {contactsLoading && !searchQuery.trim() && token && (
                             <div className='flex flex-col items-center justify-center py-12 gap-3'>
                                 <div className='animate-spin rounded-full h-9 w-9 border-2 border-cyan-500/30 border-t-cyan-500' />
@@ -584,14 +612,7 @@ export const PrivateMessages: React.FC = () => {
                             !contactsLoading &&
                             !(contactsError && !searchQuery.trim() && token) &&
                             listContacts.map((u) => {
-                                const unreadCount = !token
-                                    ? MOCK_PMS.filter(
-                                          (m) =>
-                                              m.senderId === u.id &&
-                                              m.receiverId === currentUserId &&
-                                              !m.isRead
-                                      ).length
-                                    : 0;
+                                const unreadCount = 0;
 
                                 return (
                                     <button

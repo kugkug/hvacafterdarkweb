@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Message, ChatRoom, Category, ModLogEntry } from '../types';
-import { MOCK_CATEGORIES, MOCK_ROOMS, OTHER_USERS } from '../constants';
+import { MOCK_CATEGORIES, MOCK_ROOMS } from '../constants';
 import { checkContentSafety } from '../services/geminiService';
 
 interface ChatWindowProps {
@@ -222,9 +222,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
     const getAuthorStats = (authorId: string) => {
         if (authorId === user.id) return user;
-        return (
-            OTHER_USERS.find((u) => u.id === authorId) || { thumbsUpCount: 0 }
-        );
+        return { thumbsUpCount: 0 };
     };
 
     const filteredCategories = categories.filter(
