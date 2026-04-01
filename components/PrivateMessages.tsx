@@ -514,6 +514,8 @@ export const PrivateMessages: React.FC = () => {
         // Laravel `broadcastAs(): 'message.sent'` → listen with leading dot; some apps use `private.message`
         channel.listen('.message.sent', onRealtimeMessage);
         channel.listen('.private.message', onRealtimeMessage);
+        channel.listen('.private.message.updated', onRealtimeMessage);
+        channel.listen('.private.message.deleted', onRealtimeMessage);
 
         return () => {
             window.Echo?.leave(channelName);

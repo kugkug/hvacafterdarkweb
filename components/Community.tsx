@@ -14,6 +14,9 @@ const Community = () => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [mobileRoomsOpen, setMobileRoomsOpen] = useState(false);
     const [newMessage, setNewMessage] = useState('');
+    const [editingMessageId, setEditingMessageId] = useState<
+        string | number | null
+    >(null);
     const [conversationName, setConversationName] = useState<string | null>(
         null
     );
@@ -42,10 +45,40 @@ const Community = () => {
         error: messageError,
         response: messageResponse
     } = usePost(`/conversations/${activeRoomId}/messages`);
+    const cancelEdit = () => {
+        setEditingMessageId(null);
+        setNewMessage('');
+    };
+
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || !activeRoomId) return;
+
+        if (editingMessageId != null) {
+            const apiUrl =
+                import.meta.env.VITE_API_URL +
+                `/conversations/${activeRoomId}/messages/${editingMessageId}`;
+            try {
+                await axios.put(
+                    apiUrl,
+                    { body: newMessage.trim() },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+                cancelEdit();
+                await refetchConversation();
+            } catch (err) {
+                console.error('Failed to update message', err);
+            }
+            return;
+        }
+
         const postResponse = await postData({
             body: newMessage
         });
@@ -100,6 +133,10 @@ const Community = () => {
         channel.listen('.message.sent', () => {
             refetchConversation();
         });
+
+        channel.listen('.message.deleted', () => {
+            refetchConversation();
+        });
         return () => {
             window.Echo?.leave(`conversation.${activeRoomId}`);
         };
@@ -124,6 +161,11 @@ const Community = () => {
         if (scrollRef.current)
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [conversationData, activeRoomId]);
+
+    useEffect(() => {
+        setEditingMessageId(null);
+        setNewMessage('');
+    }, [activeRoomId]);
 
     return (
         <main className='relative z-10 w-full max-w-[1400px] mx-auto px-4 py-6 sm:p-6 md:p-12 min-w-0'>
@@ -218,7 +260,11 @@ const Community = () => {
                                             {msg.user.email === user && (
                                                 <>
                                                     <button
+                                                        type='button'
                                                         onClick={() => {
+                                                            setEditingMessageId(
+                                                                msg.id
+                                                            );
                                                             setNewMessage(
                                                                 msg.body
                                                             );
@@ -251,22 +297,43 @@ const Community = () => {
                             <div className='p-4 sm:p-6 border-t border-white/5 bg-slate-950/80'>
                                 <form
                                     onSubmit={handleSendMessage}
-                                    className='relative'
+                                    className='flex flex-col gap-3'
                                 >
                                     <input
                                         value={newMessage}
                                         onChange={(e) =>
                                             setNewMessage(e.target.value)
                                         }
-                                        placeholder='Send Message'
-                                        className='w-full bg-slate-900/40 border border-white/5 rounded-xl pl-4 pr-20 sm:px-6 py-3 sm:py-4 text-xs focus:outline-none focus:border-cyan-500/20 transition-all text-slate-200 placeholder:text-slate-800 font-light'
+                                        placeholder={
+                                            editingMessageId != null
+                                                ? 'Edit message…'
+                                                : 'Send message'
+                                        }
+                                        className='w-full bg-slate-900/40 border border-white/5 rounded-xl px-4 sm:px-6 py-3 sm:py-4 text-xs focus:outline-none focus:border-cyan-500/20 transition-all text-slate-200 placeholder:text-slate-600 font-light'
                                     />
-                                    <button
-                                        type='submit'
-                                        className='absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 text-cyan-700 font-space text-[10px] font-bold tracking-widest hover:text-cyan-500 uppercase'
-                                    >
-                                        SEND
-                                    </button>
+                                    <div className='flex flex-wrap items-center justify-end gap-2'>
+                                        {editingMessageId != null && (
+                                            <button
+                                                type='button'
+                                                onClick={cancelEdit}
+                                                className='px-4 py-2 rounded-lg border border-white/10 font-space text-[10px] font-bold tracking-widest uppercase text-slate-400 hover:text-slate-200 hover:border-white/20 transition-colors'
+                                            >
+                                                CANCEL
+                                            </button>
+                                        )}
+                                        <button
+                                            type='submit'
+                                            disabled={
+                                                loading &&
+                                                editingMessageId == null
+                                            }
+                                            className='px-4 py-2 rounded-lg border border-cyan-500/30 bg-cyan-950/30 font-space text-[10px] font-bold tracking-widest uppercase text-cyan-400 hover:bg-cyan-950/50 hover:border-cyan-400/50 transition-colors disabled:opacity-50'
+                                        >
+                                            {editingMessageId != null
+                                                ? 'UPDATE'
+                                                : 'SEND'}
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </>
@@ -276,49 +343,57 @@ const Community = () => {
                 {/* RIGHT: Rooms & Categories — sidebar on desktop, drawer on mobile */}
                 <div
                     className={`
-                        md:w-64 flex-shrink-0 flex flex-col border-t md:border-t-0 md:border-l border-white/5 bg-slate-950/60
+                        md:w-72 lg:w-80 flex-shrink-0 flex flex-col border-t md:border-t-0 md:border-l border-cyan-500/10 bg-slate-950 md:bg-gradient-to-b md:from-slate-950 md:to-slate-900/95
                         ${mobileRoomsOpen ? 'fixed inset-0 z-50 md:relative md:inset-auto flex' : 'hidden md:flex'}
                     `}
                 >
-                    <div className='p-4 md:p-6 flex items-center justify-between border-b md:border-b-0 border-white/5'>
+                    <div className='p-4 md:px-5 md:pt-5 md:pb-3 border-b border-white/10 bg-slate-900/40'>
+                        <div className='flex items-center justify-between gap-3 mb-3'>
+                            {/* <div className='flex items-center gap-2 min-w-0'>
+                                <span className='h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)] flex-shrink-0' />
+                                <h3 className='text-[10px] font-space font-bold tracking-[0.35em] uppercase text-slate-200'>
+                                    Channels
+                                </h3>
+                            </div> */}
+                            <button
+                                type='button'
+                                onClick={() => setMobileRoomsOpen(false)}
+                                className='md:hidden p-2 rounded-lg border border-white/10 text-slate-300 hover:text-cyan-400 flex-shrink-0'
+                                aria-label='Close rooms'
+                            >
+                                <svg
+                                    className='w-5 h-5'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M6 18L18 6M6 6l12 12'
+                                    />
+                                </svg>
+                            </button>
+                        </div>
                         <input
                             type='text'
-                            placeholder='SEARCH NODES...'
-                            className='flex-1 min-w-0 bg-slate-900/50 border border-white/5 rounded-lg py-2.5 sm:py-3 px-3 sm:px-4 text-[9px] font-space tracking-widest focus:outline-none focus:border-cyan-500/20 transition-all uppercase placeholder:text-slate-800'
+                            placeholder='Search channels…'
+                            className='w-full min-w-0 bg-slate-950/80 border border-white/10 rounded-xl py-2.5 sm:py-3 px-3 sm:px-4 text-xs text-slate-200 font-space tracking-wide focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-slate-500'
                         />
-                        <button
-                            type='button'
-                            onClick={() => setMobileRoomsOpen(false)}
-                            className='md:hidden ml-2 p-2 rounded-lg border border-white/10 text-slate-400 hover:text-white'
-                            aria-label='Close rooms'
-                        >
-                            <svg
-                                className='w-5 h-5'
-                                fill='none'
-                                stroke='currentColor'
-                                viewBox='0 0 24 24'
-                            >
-                                <path
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    strokeWidth={2}
-                                    d='M6 18L18 6M6 6l12 12'
-                                />
-                            </svg>
-                        </button>
                     </div>
 
-                    <div className='flex-1 overflow-y-auto px-4 md:px-6 space-y-6 scrollbar-hide pb-6'>
+                    <div className='flex-1 overflow-y-auto px-4 md:px-5 py-4 space-y-7 scrollbar-hide pb-6'>
                         {chat &&
                             chat.map((chat: any) => (
                                 <div
                                     key={chat?.category?.id}
-                                    className='space-y-2'
+                                    className='space-y-2.5'
                                 >
-                                    <h4 className='text-[9px] font-space text-slate-700 uppercase tracking-[0.3em] font-bold'>
+                                    <h4 className='text-[10px] font-space text-cyan-400 uppercase tracking-[0.28em] font-bold border-l-2 border-cyan-500/50 pl-2.5'>
                                         {chat?.category?.name}
                                     </h4>
-                                    <div className='space-y-1'>
+                                    <div className='space-y-1.5'>
                                         {chat.conversations &&
                                             chat.conversations.map(
                                                 (conversation: any) => (
@@ -332,15 +407,17 @@ const Community = () => {
                                                                 false
                                                             );
                                                         }}
-                                                        className={`w-full text-left py-2 px-3 rounded-lg text-[11px] transition-all duration-300 flex items-center justify-between ${
+                                                        className={`w-full text-left py-2.5 px-3 rounded-xl text-[13px] leading-snug transition-all duration-200 flex items-center gap-2 border ${
                                                             activeRoomId ===
                                                             conversation.id
-                                                                ? 'bg-cyan-500/5 text-cyan-400 border border-cyan-500/10'
-                                                                : 'text-slate-600 hover:text-slate-400'
+                                                                ? 'bg-cyan-500/15 text-cyan-200 border-cyan-400/35 shadow-[0_0_20px_rgba(34,211,238,0.12)] font-semibold'
+                                                                : 'bg-slate-900/50 text-slate-200 border-white/5 hover:bg-slate-800/90 hover:text-white hover:border-cyan-500/15'
                                                         }`}
                                                     >
-                                                        <span className='truncate'>
-                                                            #{' '}
+                                                        <span className='text-cyan-500/80 font-bold flex-shrink-0'>
+                                                            #
+                                                        </span>
+                                                        <span className='truncate font-space'>
                                                             {conversation.name}
                                                         </span>
                                                     </button>
@@ -351,15 +428,15 @@ const Community = () => {
                             ))}
                     </div>
 
-                    <div className='p-4 md:p-6 border-t border-white/5 bg-slate-950/60 space-y-3'>
+                    <div className='p-4 md:p-5 border-t border-white/10 bg-slate-900/50 space-y-3'>
                         <button
                             onClick={() => {
                                 setShowConversationWindow(true);
                                 setMobileRoomsOpen(false);
                             }}
-                            className='w-full py-3 sm:py-4 bg-slate-900/40 border border-white/5 rounded-xl text-[9px] font-space font-bold text-slate-700 hover:text-cyan-500 transition-all uppercase tracking-[0.2em]'
+                            className='w-full py-3.5 sm:py-4 bg-slate-800/60 border border-cyan-500/20 rounded-xl text-[10px] font-space font-bold text-slate-200 hover:text-cyan-300 hover:border-cyan-400/40 hover:bg-slate-800/90 transition-all uppercase tracking-[0.2em]'
                         >
-                            + CREATE CHAT ROOM
+                            + Create chat room
                         </button>
                     </div>
                 </div>
