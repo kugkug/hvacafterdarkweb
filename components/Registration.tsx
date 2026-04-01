@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { NeonButton } from './NeonButton';
 import { Input } from './Input';
 
@@ -13,6 +14,7 @@ interface Props {
 }
 
 const Registration = ({ onClose, onCancel }: Props) => {
+    const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -131,6 +133,17 @@ const Registration = ({ onClose, onCancel }: Props) => {
                     >
                         BACK TO LOG IN
                     </NeonButton>
+
+                    <button
+                        type='button'
+                        onClick={() => {
+                            onClose?.();
+                            navigate('/forgot-password');
+                        }}
+                        className='w-full text-center font-space text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500 hover:text-cyan-400 transition-colors pt-2'
+                    >
+                        Forgot your password?
+                    </button>
 
                     {error && (
                         <p className='transition-all duration-100 text-[14px] text-red-600'>

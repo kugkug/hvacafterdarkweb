@@ -7,6 +7,9 @@ import Finds from './components/Finds';
 import Community from './components/Community';
 import { PrivateMessages } from './components/PrivateMessages';
 import UserProfile from './components/UserProfile';
+import RequestPasswordReset from './components/RequestPasswordReset';
+import PasswordResetEmailSent from './components/PasswordResetEmailSent';
+import ResetPassword from './components/ResetPassword';
 import { Footer } from './components/Footer';
 
 const App = () => {
@@ -22,6 +25,15 @@ const App = () => {
                 <Route path='/community' element={<Community />} />
                 <Route path='/messages' element={<PrivateMessages />} />
                 <Route path='/profile' element={<UserProfile />} />
+                <Route
+                    path='/forgot-password/sent'
+                    element={<PasswordResetEmailSent />}
+                />
+                <Route
+                    path='/forgot-password'
+                    element={<RequestPasswordReset />}
+                />
+                <Route path='/reset-password' element={<ResetPassword />} />
             </Routes>
             </div>
             <Footer />

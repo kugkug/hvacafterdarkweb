@@ -112,6 +112,16 @@ const Sigin = ({ onClose, onClick }: Props) => {
                     >
                         REGISTER
                     </NeonButton>
+                    <button
+                        type='button'
+                        onClick={() => {
+                            onClose?.();
+                            navigate('/forgot-password');
+                        }}
+                        className='w-full text-center font-space text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500 hover:text-cyan-400 transition-colors pt-2'
+                    >
+                        Forgot your password?
+                    </button>
                 </form>
                 <div className='text-center mt-10'>
                     <p className='text-[10px] text-slate-800 font-space font-bold uppercase tracking-[0.2em]'>
